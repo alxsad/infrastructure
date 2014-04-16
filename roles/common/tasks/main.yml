@@ -1,0 +1,28 @@
+- name: update apt repo
+  action: command apt-get update
+
+- name: install python modules for ansible
+  apt: pkg=python-pycurl state=latest
+
+- name: install curl
+  apt: pkg=curl state=latest
+
+- name: dotdeb key
+  apt_key: url=http://www.dotdeb.org/dotdeb.gpg state=present
+
+- name: dotdeb repo
+  apt_repository: repo="deb http://packages.dotdeb.org wheezy all" state=present update_cache=yes
+
+- name: dotdeb php55 repo
+  apt_repository: repo="deb http://packages.dotdeb.org wheezy-php55 all" state=present update_cache=yes
+
+- name: installing sudo, zsh, htop, tcpdump, mc, wget, vim
+  apt: pkg={{item}} state=latest
+  with_items:
+    - sudo
+    - zsh
+    - htop
+    - tcpdump
+    - mc
+    - wget
+    - vim

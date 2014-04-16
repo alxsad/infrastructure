@@ -1,0 +1,5 @@
+- name: install fpm
+  apt: pkg=php5-fpm state=latest
+
+- name: install fpm
+  apt: pkg=php5-cli state=latest

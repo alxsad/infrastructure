@@ -1,0 +1,14 @@
+---
+- hosts: droplets
+  sudo: yes
+
+  vars:
+    user: alxsad
+    path: /srv/alxsad
+    http_port: 80
+    max_clients: 200
+
+  roles:
+    - common
+    - nginx
+    - php
