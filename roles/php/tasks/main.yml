@@ -1,5 +1,10 @@
-- name: install fpm
+- name: install php fpm
   apt: pkg=php5-fpm state=latest
 
-- name: install fpm
+- name: install php cli
   apt: pkg=php5-cli state=latest
+
+- name: remove default fpm pool config
+  file: path=/etc/php5/fpm/pool.d/www.conf state=absent
+  notify:
+    - restart php-fpm

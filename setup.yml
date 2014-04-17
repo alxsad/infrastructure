@@ -3,12 +3,18 @@
   sudo: yes
 
   vars:
+    server: davidovich.tk
+    name: alxsad
     user: alxsad
     path: /srv/alxsad
-    http_port: 80
-    max_clients: 200
+    port: 80
+    zsh_theme: robbyrussell
+
+  vars_prompt:
+    password: "Please enter the user password"
 
   roles:
     - common
     - nginx
     - php
+    - alxsad

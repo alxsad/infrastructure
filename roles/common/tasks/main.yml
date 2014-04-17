@@ -16,13 +16,23 @@
 - name: dotdeb php55 repo
   apt_repository: repo="deb http://packages.dotdeb.org wheezy-php55 all" state=present update_cache=yes
 
-- name: installing sudo, zsh, htop, tcpdump, mc, wget, vim
+- name: install
   apt: pkg={{item}} state=latest
   with_items:
     - sudo
+    - git
     - zsh
     - htop
     - tcpdump
     - mc
     - wget
     - vim
+
+- name: Clone oh-my-zsh repo
+  git: repo=https://github.com/robbyrussell/oh-my-zsh.git dest=/root/.oh-my-zsh
+
+- name: Create .zshrc
+  template: src=zshrc.j2 dest=/root/.zshrc mode=0600
+
+- name: Set zsh for root
+  user: name=root shell=/bin/zsh

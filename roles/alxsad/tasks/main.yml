@@ -1,0 +1,23 @@
+- name: Create user
+  user: name={{user}} group={{user}} password={{password}} state=present
+
+- name: Create path
+  file: path={{path}} state=directory mode=0755 recurse=true owner={{user}} group={{user}}
+
+- name: Setup php-fpm
+  template: src=fpm.j2 dest="/etc/php5/fpm/pool.d/{{name}}.conf"
+  notify:
+    - restart php-fpm
+
+- name: Setup nginx vhost 
+  template: src=vhost.j2 dest="/etc/nginx/sites-available/{{name}}"
+  notify:
+    - restart nginx
+
+- name: Enable nginx vhost
+  file: src=/etc/nginx/sites-available/{{name}} path=/etc/nginx/sites-enabled/{{name}} state=link
+  notify:
+    - restart nginx
+
+- name: init home page
+  template: src=index.php.j2 dest="{{path}}/index.php" mode=0644 owner={{user}} group={{user}}
