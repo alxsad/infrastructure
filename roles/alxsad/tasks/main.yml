@@ -1,8 +1,18 @@
 - name: Create user
-  user: name={{user}} group={{user}} password={{password}} state=present
+  user: >
+    name={{user}}
+    group={{user}}
+    password={{password}}
+    state=present
 
 - name: Create path
-  file: path={{path}} state=directory mode=0755 recurse=true owner={{user}} group={{user}}
+  file: >
+    path={{path}}
+    state=directory
+    mode=0755
+    recurse=true
+    owner={{user}}
+    group={{user}}
 
 - name: Setup php-fpm
   template: src=fpm.j2 dest="/etc/php5/fpm/pool.d/{{name}}.conf"
@@ -15,9 +25,17 @@
     - restart nginx
 
 - name: Enable nginx vhost
-  file: src=/etc/nginx/sites-available/{{name}} path=/etc/nginx/sites-enabled/{{name}} state=link
+  file: >
+    src=/etc/nginx/sites-available/{{name}}
+    path=/etc/nginx/sites-enabled/{{name}}
+    state=link
   notify:
     - restart nginx
 
 - name: init home page
-  template: src=index.php.j2 dest="{{path}}/index.php" mode=0644 owner={{user}} group={{user}}
+  template: >
+    src=index.php.j2
+    dest="{{path}}/index.php"
+    mode=0644
+    owner={{user}}
+    group={{user}}

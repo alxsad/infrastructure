@@ -1,21 +1,6 @@
 - name: update apt repo
   action: command apt-get update
 
-- name: install python modules for ansible
-  apt: pkg=python-pycurl state=latest
-
-- name: install curl
-  apt: pkg=curl state=latest
-
-- name: dotdeb key
-  apt_key: url=http://www.dotdeb.org/dotdeb.gpg state=present
-
-- name: dotdeb repo
-  apt_repository: repo="deb http://packages.dotdeb.org wheezy all" state=present update_cache=yes
-
-- name: dotdeb php55 repo
-  apt_repository: repo="deb http://packages.dotdeb.org wheezy-php55 all" state=present update_cache=yes
-
 - name: install
   apt: pkg={{item}} state=latest
   with_items:
@@ -27,6 +12,25 @@
     - mc
     - wget
     - vim
+    - python-pycurl
+    - curl
+
+- name: dotdeb key
+  apt_key: >
+    url=http://www.dotdeb.org/dotdeb.gpg
+    state=present
+
+- name: dotdeb repo
+  apt_repository: >
+    repo="deb http://packages.dotdeb.org wheezy all"
+    state=present
+    update_cache=yes
+
+- name: dotdeb php55 repo
+  apt_repository: >
+    repo="deb http://packages.dotdeb.org wheezy-php55 all"
+    state=present
+    update_cache=yes
 
 - name: Clone oh-my-zsh repo
   git: repo=https://github.com/robbyrussell/oh-my-zsh.git dest=/root/.oh-my-zsh

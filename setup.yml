@@ -1,6 +1,7 @@
 ---
 - hosts: droplets
   sudo: yes
+  remote_user: root
 
   vars:
     server: davidovich.tk
