@@ -1,5 +1,5 @@
 ---
-- hosts: droplets
+- hosts: prod
   sudo: yes
   remote_user: root
 

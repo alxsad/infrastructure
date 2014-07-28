@@ -1,0 +1,6 @@
+[digitalocean]
+dev ansible_ssh_host=178.62.41.4 ansible_ssh_port=22 ansible_ssh_user=root
+prod ansible_ssh_host=188.226.197.55 ansible_ssh_port=22 ansible_ssh_user=root
+
+[local]
+localhost ansible_connection=local

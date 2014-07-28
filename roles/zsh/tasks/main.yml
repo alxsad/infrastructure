@@ -1,0 +1,12 @@
+- name: install package
+  apt: pkg=zsh state=latest
+
+- name: clone oh-my-zsh repo
+  git: repo=https://github.com/robbyrussell/oh-my-zsh.git dest=/root/.oh-my-zsh
+
+- name: create .zshrc
+  template: src=zshrc.j2 dest=/root/.zshrc
+  with_items: users
+
+- name: setup default shell
+  user: name=root shell=/bin/zsh

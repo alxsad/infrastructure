@@ -1,7 +1,11 @@
-My infrastructure
+Infrastructure
 ==============
-ansible infrastructure
+my ansible infrastructure
 
-Run
+Run for development server
 ==============
-ansible-playbook -i infrastructure setup.yml
+ansible-playbook -i inventory dev.yml
+
+Run for production server
+==============
+ansible-playbook -i inventory prod.yml

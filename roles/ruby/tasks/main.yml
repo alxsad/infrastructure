@@ -1,0 +1,37 @@
+- name: install make
+  apt: pkg=make state=latest
+
+- name: download ruby
+  get_url: >
+    url=ftp://ftp.ruby-lang.org/pub/ruby/2.1/ruby-2.1.2.tar.gz
+    dest=/tmp/ruby-2.1.2.tar.gz
+
+- name: extract ruby
+  command: >
+    tar -zxf /tmp/ruby-2.1.2.tar.gz
+    chdir=/tmp
+    creates=/tmp/ruby-2.1.2/
+
+- name: build ruby
+  command: >
+    {{ item }}
+    chdir=/tmp/ruby-2.1.2
+    creates=/usr/local/bin/ruby
+  with_items:
+    - ./configure --disable-install-rdoc --with-openssl-dir=/usr
+    - make
+    - sudo make install
+
+- name: add ruby symlinks
+  file: src=/usr/local/bin/{{item}} dest=/usr/bin/{{item}} state=link
+  with_items:
+    - erb
+    - gem
+    - irb
+    - rake
+    - rdoc
+    - ruby
+    - testrb
+
+- name: install bundler gem
+  gem: name=bundler state=present user_install=no

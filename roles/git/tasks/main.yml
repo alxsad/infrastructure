@@ -1,0 +1,19 @@
+- name: install package
+  apt: pkg=git state=latest
+
+- name: create user
+  user: name=git createhome=yes
+
+- name: setup username
+  command: git config --global user.name "Alex Davidovich"
+
+- name: setup email
+  command: git config --global user.email "alex@davidovich.tk"
+
+- name: setup authorized_keys
+  authorized_key: user=git key="{{ item }}"
+  with_file:
+    - ../../../public_keys/intellectsoft
+
+- name: create projects folder
+  file: path=/home/git/projects state=directory owner=git group=git mode=0600

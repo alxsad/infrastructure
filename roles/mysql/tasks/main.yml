@@ -1,0 +1,34 @@
+- name: install package
+  apt: pkg={{item}} state=latest
+  with_items:
+    - mysql-server
+    - mysql-client
+    - libmysqlclient-dev
+    - python-mysqldb
+  notify: start mysql
+
+- name: remove existing innodb log files
+  file: path=/var/lib/mysql/{{item}} state=absent
+  with_items:
+    - ib_logfile0
+    - ib_logfile1
+
+- name: copy my.cnf
+  template: src=my.cnf.j2 dest=/etc/mysql/my.cnf
+  notify: restart mysql
+
+- name: set root password
+  mysql_user: name=root host={{item}} password=root state=present
+  with_items:
+    - 127.0.0.1
+    - ::1
+    - localhost
+
+- name: copy user my.cnf file with root password credentials
+  template: src=dotmy.cnf.j2 dest=/root/.my.cnf owner=root group=root mode=0600
+
+- name: delete anonymous user
+  mysql_user: name="" state=absent
+
+- name: remove test database
+  mysql_db: name=test state=absent

@@ -1,0 +1,168 @@
+- name: install packages
+  apt: pkg={{item}} state=latest
+  with_items:
+    - build-essential
+    - zlib1g-dev
+    - libyaml-dev
+    - libssl-dev
+    - libgdbm-dev
+    - libreadline-dev
+    - libncurses5-dev
+    - libffi-dev
+    - curl
+    - openssh-server
+    - redis-server
+    - checkinstall
+    - libxml2-dev
+    - libxslt-dev
+    - libcurl4-openssl-dev
+    - libicu-dev
+    - logrotate
+    - python-docutils
+
+- name: git config user.name
+  sudo: yes
+  sudo_user: git
+  command: git config --global user.name "GitLab"
+
+- name: git config user.email
+  sudo: yes
+  sudo_user: git
+  command: git config --global user.email "git@ohmydev.tk"
+
+- name: create mysql database
+  mysql_db: name=gitlab state=present encoding=utf8 collation=utf8_unicode_ci
+
+- name: add mysql user
+  mysql_user: >
+    name=git
+    host={{item}}
+    password=git
+    state=present
+    priv="gitlab.*:SELECT,LOCK TABLES,INSERT,UPDATE,DELETE,CREATE,DROP,INDEX,ALTER"
+  with_items:
+    - 127.0.0.1
+    - ::1
+    - localhost
+
+- name: clone gitlab source code from github
+  sudo: yes
+  sudo_user: git
+  git: repo=https://gitlab.com/gitlab-org/gitlab-ce.git dest=/home/git/gitlab version=7-1-stable
+
+- name: copy gitlab configs
+  sudo: yes
+  sudo_user: git
+  command: cp /home/git/gitlab/config/{{item.src}} /home/git/gitlab/config/{{item.dst}}
+  with_items:
+    - { src: "unicorn.rb.example",                  dst: "unicorn.rb" }
+    - { src: "gitlab.yml.example",                  dst: "gitlab.yml" }
+    - { src: "initializers/rack_attack.rb.example", dst: "initializers/rack_attack.rb" }
+    - { src: "database.yml.mysql",                  dst: "database.yml" }
+
+- name: change file attributes for gitlab.yml
+  file: path=/home/git/gitlab/config/gitlab.yml owner=git group=git mode=0640
+
+- name: change file attributes for database.yml
+  file: path=/home/git/gitlab/config/database.yml owner=git group=git mode=0600
+
+- name: configure gitlab host
+  replace: >
+    dest=/home/git/gitlab/config/gitlab.yml
+    regexp="host: localhost"
+    replace="host: git.ohmydev.tk"
+
+- name: configure gitlab email from
+  replace: >
+    dest=/home/git/gitlab/config/gitlab.yml
+    regexp="email_from: example@example.com"
+    replace="email_from: git@ohmydev.tk"
+
+- name: make sure gitlab can write to the following directories
+  file: path={{item.dir}} state=directory recurse=yes owner=git group=git mode=0755
+  with_items:
+  - { dir: "/home/git/gitlab/log" }
+  - { dir: "/home/git/gitlab/tmp" }
+  - { dir: "/home/git/gitlab/tmp/pids" }
+  - { dir: "/home/git/gitlab/tmp/sockets" }
+  - { dir: "/home/git/gitlab/public/uploads" }
+
+- name: change folder attributes for gitlab-satellites
+  file: path=/home/git/gitlab-satellites state=directory recurse=yes owner=git group=git mode=0750
+
+- name: configure db connection -> dbname
+  replace: >
+    dest=/home/git/gitlab/config/database.yml
+    regexp="database: gitlabhq_production"
+    replace="database: gitlab"
+
+- name: configure db connection -> password
+  replace: >
+    dest=/home/git/gitlab/config/database.yml
+    regexp='password: "secure password"'
+    replace='password: "git"'
+
+- name: install bundles
+  sudo: yes
+  sudo_user: git
+  command: >
+    chdir=/home/git/gitlab
+    bundle install --deployment --without development test postgres aws
+
+- name: install gitlab shell
+  sudo: yes
+  sudo_user: git
+  command: >
+    {{item}}
+    chdir=/home/git/gitlab
+    creates=/home/git/gitlab:shell:install    
+  with_items:
+    - bundle exec rake gitlab:shell:install[v1.9.6] REDIS_URL=redis://localhost:6379 RAILS_ENV=production
+    - touch /home/git/gitlab:shell:install
+
+- name: setup gitlab
+  sudo: yes
+  sudo_user: git
+  shell: >
+      yes: 'yes' | {{item}}
+      creates=/home/git/gitlab:setup
+      chdir=/home/git/gitlab
+  with_items:
+    - bundle exec rake gitlab:setup RAILS_ENV=production
+    - touch /home/git/gitlab:setup
+
+- name: install init script
+  command: cp /home/git/gitlab/lib/support/init.d/gitlab /etc/init.d/gitlab
+
+- name: autorun gitlab
+  command: update-rc.d gitlab defaults 21
+
+- name: setup logrotate
+  command: cp /home/git/gitlab/lib/support/logrotate/gitlab /etc/logrotate.d/gitlab
+
+- name: compile assets
+  sudo: yes
+  sudo_user: git
+  shell: >
+      {{item}}
+      creates=/home/git/gitlab:compile
+      chdir=/home/git/gitlab
+  with_items:
+    - bundle exec rake assets:precompile RAILS_ENV=production
+    - touch /home/git/gitlab:compile
+  notify:
+    - restart gitlab
+
+- name: configure nginx vhost
+  command: cp /home/git/gitlab/lib/support/nginx/gitlab /etc/nginx/sites-available/gitlab
+
+- name: enable nginx vhost
+  file: src=/etc/nginx/sites-available/gitlab path=/etc/nginx/sites-enabled/gitlab state=link
+
+- name: configure nginx server name
+  replace: >
+    dest=/etc/nginx/sites-available/gitlab
+    regexp="server_name YOUR_SERVER_FQDN"
+    replace="server_name git.ohmydev.tk"
+  notify:
+    - restart nginx

@@ -1,0 +1,12 @@
+---
+- hosts: dev
+
+  roles:
+    - init
+    - swap
+    - git
+    - nginx
+    - mysql
+    - zsh
+    - ruby
+    - gitlab
