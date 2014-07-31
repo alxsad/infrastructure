@@ -1,5 +1,8 @@
 - name: install make
-  apt: pkg=make state=latest
+  apt: pkg={{item}} state=latest force=yes
+  with_items:
+    - make
+    - libssl-dev
 
 - name: download ruby
   get_url: >
@@ -8,19 +11,19 @@
 
 - name: extract ruby
   command: >
-    tar -zxf /tmp/ruby-2.1.2.tar.gz
     chdir=/tmp
-    creates=/tmp/ruby-2.1.2/
+    creates=/tmp/ruby-2.1.2/main.c
+    tar -zxf /tmp/ruby-2.1.2.tar.gz
 
 - name: build ruby
   command: >
-    {{ item }}
     chdir=/tmp/ruby-2.1.2
     creates=/usr/local/bin/ruby
+    {{ item }}
   with_items:
     - ./configure --disable-install-rdoc --with-openssl-dir=/usr
     - make
-    - sudo make install
+    - make install
 
 - name: add ruby symlinks
   file: src=/usr/local/bin/{{item}} dest=/usr/bin/{{item}} state=link

@@ -18,14 +18,14 @@
   notify: restart mysql
 
 - name: set root password
-  mysql_user: name=root host={{item}} password=root state=present
+  mysql_user: name=root host={{item}} password={{mysql_root_password}} state=present
   with_items:
     - 127.0.0.1
     - ::1
     - localhost
 
 - name: copy user my.cnf file with root password credentials
-  template: src=dotmy.cnf.j2 dest=/root/.my.cnf owner=root group=root mode=0600
+  template: src=dotmy.cnf.j2 dest=/root/.my.cnf mode=0600
 
 - name: delete anonymous user
   mysql_user: name="" state=absent

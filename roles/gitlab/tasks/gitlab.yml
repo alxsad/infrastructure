@@ -1,0 +1,83 @@
+- name: clone gitlab source code from github
+  sudo: yes
+  sudo_user: git
+  git: repo={{gitlab_repo}} dest={{gitlab_path}} version={{gitlab_version}}
+
+- name: gitlab configs
+  template: src={{item.src}} dest={{gitlab_path}}/config/{{item.dst}} owner=git group=git mode={{item.mode}}
+  with_items:
+    - { src: "unicorn.rb.j2",     dst: "unicorn.rb",                  mode: 644 }
+    - { src: "gitlab.yml.j2",     dst: "gitlab.yml",                  mode: 640 }
+    - { src: "rack_attack.rb.j2", dst: "initializers/rack_attack.rb", mode: 644 }
+    - { src: "database.yml.j2",   dst: "database.yml",                mode: 600 }
+
+- name: make sure gitlab can write to the following directories
+  file: path={{item.dir}} state=directory recurse=yes owner=git group=git mode={{item.mode}}
+  with_items:
+    - { dir: "{{gitlab_path}}/log",            mode: 755 }
+    - { dir: "{{gitlab_path}}/tmp",            mode: 755 }
+    - { dir: "{{gitlab_path}}/tmp/pids",       mode: 755 }
+    - { dir: "{{gitlab_path}}/tmp/sockets",    mode: 755 }
+    - { dir: "{{gitlab_path}}/public/uploads", mode: 755 }
+    - { dir: "{{gitlab_satellites_path}}",     mode: 750 }
+
+- name: install bundles
+  sudo: yes
+  sudo_user: git
+  command: >
+    chdir={{gitlab_path}}
+    bundle install --deployment --without development test postgres aws
+
+- name: install gitlab shell
+  sudo: yes
+  sudo_user: git
+  command: >
+    chdir={{gitlab_path}}
+    creates={{gitlab_path}}:shell:install
+    {{item}}
+  with_items:
+    - bundle exec rake gitlab:shell:install[v1.9.6] REDIS_URL=redis://localhost:6379 RAILS_ENV=production
+    - touch {{gitlab_path}}:shell:install
+
+- name: configure gitlab shell
+  template: src=shell-config.yml.j2 dest={{gitlab_shell_path}}/config.yml owner=git group=git mode=644
+
+- name: setup gitlab
+  sudo: yes
+  sudo_user: git
+  shell: >
+    creates={{gitlab_path}}:setup
+    chdir={{gitlab_path}}
+    yes 'yes' | {{item}}
+  with_items:
+    - bundle exec rake gitlab:setup RAILS_ENV=production
+    - touch {{gitlab_path}}:setup
+
+- name: install init script
+  command: >
+    creates=/etc/init.d/gitlab
+    cp {{gitlab_path}}/lib/support/init.d/gitlab /etc/init.d/gitlab
+
+- name: autorun gitlab
+  command: >
+    creates={{gitlab_path}}:autorun
+    {{item}}
+  with_items:
+    - update-rc.d gitlab defaults 21
+    - touch {{gitlab_path}}:autorun
+
+- name: setup logrotate
+  command: >
+    creates=/etc/logrotate.d/gitlab
+    cp {{gitlab_path}}/lib/support/logrotate/gitlab /etc/logrotate.d/gitlab
+
+- name: compile assets
+  sudo: yes
+  sudo_user: git
+  shell: >
+    creates={{gitlab_path}}:compile
+    chdir={{gitlab_path}}
+    {{item}}
+  with_items:
+    - bundle exec rake assets:precompile RAILS_ENV=production
+    - touch {{gitlab_path}}:compile

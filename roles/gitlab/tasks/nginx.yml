@@ -1,0 +1,8 @@
+- name: configure nginx vhost
+  template: src=gitlab.j2 dest=/etc/nginx/sites-available/gitlab
+
+- name: enable nginx vhost
+  file: src=/etc/nginx/sites-available/gitlab path=/etc/nginx/sites-enabled/gitlab state=link
+  notify:
+    - restart nginx
+    - restart gitlab

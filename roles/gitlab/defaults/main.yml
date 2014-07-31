@@ -1,0 +1,11 @@
+gitlab_mysql_db: gitlab
+gitlab_mysql_user: git
+gitlab_mysql_password: git
+gitlab_server_name: localhost
+gitlab_email_from: git@localhost
+gitlab_path: /home/git/gitlab
+gitlab_satellites_path: /home/git/gitlab-satellites
+gitlab_shell_path: /home/git/gitlab-shell
+gitlab_repo: https://gitlab.com/gitlab-org/gitlab-ce.git
+gitlab_version: 7-1-stable
+gitlab_cert_file: /etc/nginx/ssl/default.crt

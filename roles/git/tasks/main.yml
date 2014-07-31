@@ -2,18 +2,16 @@
   apt: pkg=git state=latest
 
 - name: create user
-  user: name=git createhome=yes
+  user: name={{git_user}} createhome=yes
 
 - name: setup username
-  command: git config --global user.name "Alex Davidovich"
+  command: git config --global user.name "{{git_user}}"
 
 - name: setup email
-  command: git config --global user.email "alex@davidovich.tk"
+  command: git config --global user.email "{{git_user}}@{{server_name}}"
 
 - name: setup authorized_keys
-  authorized_key: user=git key="{{ item }}"
+  authorized_key: user=git key="{{item}}"
   with_file:
     - ../../../public_keys/intellectsoft
-
-- name: create projects folder
-  file: path=/home/git/projects state=directory owner=git group=git mode=0600
+    - ../../../public_keys/winhome

@@ -1,0 +1,2 @@
+postfix_inet_interfaces: loopback-only
+postfix_mydestination: "{{server_name}}, {{ansible_hostname}}, localhost.localdomain, localhost"

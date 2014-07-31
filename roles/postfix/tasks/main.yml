@@ -1,0 +1,12 @@
+- name: remove exim4
+  apt: pkg={{item}} state=absent
+  with_items:
+    - exim4-base
+    - exim4-config
+
+- name: install package
+  apt: pkg=postfix state=latest
+
+- name: configure
+  template: src=main.cf.j2 dest=/etc/postfix/main.cf
+  notify: restart postfix

@@ -1,9 +1,11 @@
 - name: create file
-  shell: >
-    creates=/swapfile
-    dd if=/dev/zero of=/swapfile bs=1024 count=512k
-    mkswap /swapfile
-    swapon /swapfile
+  command: >
+    {{item}}
+  when: "ansible_swaptotal_mb == 0"
+  with_items:
+    - dd if=/dev/zero of=/swapfile bs=1024 count={{swap_size}}
+    - mkswap /swapfile
+    - swapon /swapfile
 
 - name: autorun
   mount: name=swap src=/swapfile fstype=swap state=present

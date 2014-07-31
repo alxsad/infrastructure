@@ -1,0 +1,8 @@
+- name: setup global git config
+  sudo: yes
+  sudo_user: git
+  command: "{{item}}"
+  with_items:
+    - git config --global user.name "GitLab"
+    - git config --global user.email "git@{{server_name}}"
+    - git config --global core.autocrlf input

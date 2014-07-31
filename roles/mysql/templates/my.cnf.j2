@@ -10,13 +10,13 @@ nice   = 0
 user                  = mysql
 pid-file              = /var/run/mysqld/mysqld.pid
 socket                = /var/run/mysqld/mysqld.sock
-port                  = 3306
+port                  = {{mysql_port}}
 basedir               = /usr
 datadir               = /var/lib/mysql
 tmpdir                = /tmp
 lc-messages-dir       = /usr/share/mysql
 skip-external-locking
-bind-address          = 127.0.0.1
+bind-address          = {{mysql_bind_addr}}
 key_buffer            = 16M
 max_allowed_packet    = 16M
 thread_stack          = 192K

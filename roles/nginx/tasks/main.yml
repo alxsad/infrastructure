@@ -1,7 +1,35 @@
-- name: install package
-  apt: pkg=nginx state=latest
+- name: add deb repo
+  apt_repository: repo="deb http://nginx.org/packages/debian/ wheezy nginx" state=present update_cache=yes
 
-- name: remove default vhost
-  file: path=/etc/nginx/sites-enabled/default state=absent
-  notify:
-    - restart nginx
+- name: add deb key
+  apt_key: url=http://nginx.org/keys/nginx_signing.key state=present
+
+- name: update apt repo
+  apt: upgrade=yes update_cache=yes cache_valid_time=3600
+
+- name: install package
+  apt: pkg=nginx state=latest force=yes
+
+- name: remove conf.d
+  file: path=/etc/nginx/conf.d state=absent
+  notify: restart nginx
+
+- name: create directories
+  file: name=/etc/nginx/{{item}} state=directory
+  with_items:
+    - sites-available
+    - sites-enabled
+    - ssl
+
+- name: create self-signed ssl cert
+  command: >
+    chdir=/etc/nginx/ssl
+    creates=/etc/nginx/ssl/default.crt
+    openssl req -newkey rsa:2048 -x509 -subj "/C=BY/ST=Minsk/L=Minsk/O=IT/OU=IT/CN={{server_name}}" -nodes -days 3650 -out default.crt -keyout default.key
+
+- name: change key permissions
+  file: path=/etc/nginx/ssl/default.key mode=0640
+
+- name: conf setup
+  template: src=nginx.conf.j2 dest=/etc/nginx/nginx.conf mode=644
+  notify: restart nginx

@@ -1,0 +1,14 @@
+- name: create mysql database
+  mysql_db: name={{gitlab_mysql_db}} state=present encoding=utf8 collation=utf8_unicode_ci
+
+- name: add mysql user
+  mysql_user: >
+    name={{gitlab_mysql_user}}
+    host={{item}}
+    password={{gitlab_mysql_password}}
+    state=present
+    priv="gitlab.*:SELECT,LOCK TABLES,INSERT,UPDATE,DELETE,CREATE,DROP,INDEX,ALTER"
+  with_items:
+    - 127.0.0.1
+    - ::1
+    - localhost
