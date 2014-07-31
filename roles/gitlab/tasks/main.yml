@@ -3,4 +3,3 @@
 - include: mysql.yml
 - include: gitlab.yml
 - include: nginx.yml
-- debug: msg="gitlab:\nlogin.........root\npassword......5iveL!fe"
