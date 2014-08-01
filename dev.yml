@@ -6,6 +6,7 @@
     gitlab_server_name: git.ohmydev.tk
     gitlab_email_from:  git@ohmydev.tk
     gitlab_path: /home/git/gitlab
+    phpci_server: ci.ohmydev.tk
     mysql_root_password: root
     swap_size: 512k
 

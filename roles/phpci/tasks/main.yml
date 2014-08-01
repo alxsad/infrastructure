@@ -1,0 +1,47 @@
+- name: install php dependencies
+  apt: name={{item}} state=latest
+  with_items:
+    - php5-mcrypt
+    - php5-mysql
+
+- name: create group
+  group: name={{ phpci_group }} state=present
+
+- name: create user
+  user: name={{ phpci_user }} group={{ phpci_group }} state=present
+
+- name: setup php fpm
+  template: src=fpm.j2 dest=/etc/php5/fpm/pool.d/{{ phpci_name }}.conf
+  notify: restart php-fpm
+
+- name: setup nginx vhost
+  template: src=vhost.j2 dest=/etc/nginx/sites-available/{{ phpci_name }}
+
+- name: enable nginx vhost
+  file: src=/etc/nginx/sites-available/{{ phpci_name }} path=/etc/nginx/sites-enabled/{{ phpci_name }} state=link
+  notify: restart nginx
+
+- name: create directory
+  file: dest={{ phpci_path }} state=directory owner={{ phpci_user }} group={{ phpci_group }} mode=750
+
+- name: create project
+  sudo: yes
+  sudo_user: "{{phpci_user}}"
+  command: >
+    creates={{ phpci_path }}/phpci.yml
+    composer create-project block8/phpci {{ phpci_path }} --keep-vcs --no-dev
+
+- name: create mysql database
+  mysql_db: name={{phpci_mysql_db}} state=present encoding=utf8 collation=utf8_unicode_ci
+
+- name: add mysql user
+  mysql_user: >
+    name={{phpci_mysql_user}}
+    host={{item}}
+    password={{phpci_mysql_password}}
+    state=present
+    priv="{{phpci_mysql_db}}.*:SELECT,LOCK TABLES,INSERT,UPDATE,DELETE,CREATE,DROP,INDEX,ALTER"
+  with_items:
+    - 127.0.0.1
+    - ::1
+    - localhost

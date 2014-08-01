@@ -1,0 +1,9 @@
+phpci_name: phpci
+phpci_user: phpci
+phpci_group: phpci
+phpci_server: localhost
+phpci_port: 80
+phpci_path: /srv/phpci
+phpci_mysql_db: phpci
+phpci_mysql_user: phpci
+phpci_mysql_password: phpci

@@ -1,0 +1,22 @@
+server {
+
+    server_name {{ phpci_server }};
+    listen {{ phpci_port }};
+    root {{ phpci_path }}/public;
+
+    location / {
+        try_files $uri $uri/ /index.php$is_args$args;
+    }
+
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_pass unix:/var/run/fpm-{{ phpci_name }}.sock;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_param HTTPS off;
+        fastcgi_index index.php;
+    }
+
+    access_log /var/log/{{ phpci_name }}_access.log;
+    error_log /var/log/{{ phpci_name }}_error.log;
+}
