@@ -1,25 +1,19 @@
 - name: dotdeb key
-  apt_key: >
-    url=http://www.dotdeb.org/dotdeb.gpg
-    state=present
+  apt_key: url=http://www.dotdeb.org/dotdeb.gpg state=present
 
 - name: dotdeb repo
-  apt_repository: >
-    repo="deb http://packages.dotdeb.org wheezy all"
-    state=present
-    update_cache=yes
+  apt_repository: repo="deb http://packages.dotdeb.org wheezy all" state=present update_cache=yes
 
 - name: dotdeb php55 repo
-  apt_repository: >
-    repo="deb http://packages.dotdeb.org wheezy-php55 all"
-    state=present
-    update_cache=yes
-    
-- name: install php fpm
-  apt: pkg=php5-fpm state=latest
+  apt_repository: repo="deb http://packages.dotdeb.org wheezy-php55 all" state=present update_cache=yes
 
-- name: install php cli
-  apt: pkg=php5-cli state=latest
+- name: install php with dependencies
+  apt: name={{item}} state=latest
+  with_items:
+    - php5-fpm
+    - php5-cli
+    - php5-curl
+    - php5-json
 
 - name: remove default fpm pool config
   file: path=/etc/php5/fpm/pool.d/www.conf state=absent

@@ -1,0 +1,10 @@
+- name: install composer
+  shell: >
+    chdir=/usr/local/bin
+    creates=/usr/local/bin/composer.phar
+    curl -sS https://getcomposer.org/installer | php -d allow_url_fopen=On
+
+- name: rename composer.phar to composer
+  shell: >
+    creates=/usr/local/bin/composer
+    mv /usr/local/bin/composer.phar /usr/local/bin/composer
